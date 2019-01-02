@@ -1,0 +1,3 @@
+# Eureka Solusi CodeIgniter Starter
+
+Still in a very very early development....
