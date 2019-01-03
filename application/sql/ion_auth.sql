@@ -1,3 +1,9 @@
+# CREATE USER 'es_ci'@'localhost' IDENTIFIED VIA mysql_native_password USING '***';
+# GRANT USAGE ON *.* TO 'es_ci'@'localhost' REQUIRE NONE
+# WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;
+# CREATE DATABASE IF NOT EXISTS `es_ci`;GRANT ALL PRIVILEGES ON `es\_ci`.* TO 'es_ci'@'localhost';
+# GRANT ALL PRIVILEGES ON `es\_ci\_%`.* TO 'es_ci'@'localhost';
+
 DROP TABLE IF EXISTS `groups`;
 
 #
@@ -9,7 +15,7 @@ CREATE TABLE `groups` (
   `name` varchar(20) NOT NULL,
   `description` varchar(100) NOT NULL,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 #
 # Dumping data for table 'groups'
@@ -46,7 +52,7 @@ CREATE TABLE `users` (
   `company` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;;
 
 
 #
@@ -68,7 +74,7 @@ CREATE TABLE `users_groups` (
   `user_id` mediumint(8) unsigned NOT NULL,
   `group_id` mediumint(8) unsigned NOT NULL,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 INSERT INTO `users_groups` (`id`, `user_id`, `group_id`) VALUES
 	(1,1,1),
@@ -87,7 +93,7 @@ CREATE TABLE `login_attempts` (
   `login` varchar(100) NOT NULL,
   `time` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 #
@@ -123,8 +129,8 @@ CREATE TABLE IF NOT EXISTS `authentications` (
   `created_on` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `provider_uid` (`provider_uid`)
-)
-=======
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 DROP TABLE IF EXISTS `groups`;
 
 #

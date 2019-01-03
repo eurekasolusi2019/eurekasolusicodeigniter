@@ -39,7 +39,7 @@ endif;
 
 <?php echo form_close();?>
 
-<<<<<<< HEAD
+
 <p><a href="forgot_password">Forgot your password?</a></p>
 <?php
 	$this->load->helper('url');
@@ -51,6 +51,6 @@ endif;
 	
 	echo anchor('auth/login_provider/LinkedIn','Login With LinkedIn.').'<br />';
 ?>
-=======
+
 <p><a href="forgot_password"><?php echo lang('login_forgot_password');?></a></p>
->>>>>>> 2
+
