@@ -1,4 +1,6 @@
 .DS_Store
+ci_sessions_dev/*
+!ci_sessions_dev/index.html
 
 application/cache/*
 !application/cache/index.html

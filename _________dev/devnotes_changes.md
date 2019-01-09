@@ -1,0 +1,3 @@
+...
+change config/database.php to access the database
+modify license
