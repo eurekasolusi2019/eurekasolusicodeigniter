@@ -20,8 +20,8 @@ user_guide_src/cilexer/build/*
 user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
 
-/vendor/
-!vendor/ion_auth/*
+/vendor/*
+!/vendor/ion_auth/*
 
 # IDE Files
 #-------------------------
