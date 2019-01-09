@@ -17,6 +17,8 @@ class Migration_Install_ion_auth extends CI_Migration {
         echo 'load config ion_auth, we need the tables...<br>';
         $this->load->config('ion_auth', TRUE);
         $this->tables = $this->config->item('tables', 'ion_auth');
+        
+        var_dump($this->tables);
     }
 
     public function up() {
