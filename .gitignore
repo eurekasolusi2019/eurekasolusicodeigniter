@@ -1,6 +1,6 @@
 .DS_Store
 
-!vendor/ion_auth/*
+
 
 ci_sessions_dev/*
 !ci_sessions_dev/index.html
@@ -19,7 +19,9 @@ user_guide_src/build/*
 user_guide_src/cilexer/build/*
 user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
+
 /vendor/
+!vendor/ion_auth/*
 
 # IDE Files
 #-------------------------
