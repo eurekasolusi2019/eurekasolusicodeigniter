@@ -1,0 +1,17 @@
+SetEnv CI_ENV 'development'
+
+<IfModule mod_headers.c>
+   Header set Access-Control-Allow-Origin "*"
+   Header set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT"
+   Header set Access-Control-Allow-Headers "*"
+</IfModule>
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+# --- Only for production ---
+# RewriteCond %{SERVER_PORT} 80
+# RewriteRule ^(.*)$ https://appsisinfogkkk.southeastasia.cloudapp.azure.com/$1 [R,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+</IfModule>

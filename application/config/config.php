@@ -3,6 +3,17 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 /*
 |--------------------------------------------------------------------------
+| ESCI additions
+|--------------------------------------------------------------------------
+|
+*/
+
+$config['esci_app_name'] = 'ESCI Quick Starter';
+$config['esci_app_version'] = '0.0.1';
+
+
+/*
+|--------------------------------------------------------------------------
 | Base Site URL
 |--------------------------------------------------------------------------
 |
@@ -114,7 +125,7 @@ $config['enable_hooks'] = FALSE;
 | https://codeigniter.com/user_guide/general/creating_libraries.html
 |
 */
-$config['subclass_prefix'] = 'MY_';
+$config['subclass_prefix'] = 'ESCI_';
 
 /*
 |--------------------------------------------------------------------------
@@ -136,7 +147,7 @@ $config['subclass_prefix'] = 'MY_';
 | Note: This will NOT disable or override the CodeIgniter-specific
 |	autoloading (application/config/autoload.php)
 */
-$config['composer_autoload'] = FALSE;
+$config['composer_autoload'] = FCPATH.'vendor'.DIRECTORY_SEPARATOR .'autoload.php';
 
 /*
 |--------------------------------------------------------------------------
