@@ -212,4 +212,5 @@ $config['error_start_delimiter']   = '<p>';     // Error message start delimiter
 $config['error_end_delimiter']     = '</p>';    // Error message end delimiter
 
 /* End of file ion_auth.php */
+
 /* Location: /vendor/ion_auth/config/ion_auth.php */
