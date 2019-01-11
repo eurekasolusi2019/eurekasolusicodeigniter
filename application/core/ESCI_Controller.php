@@ -10,20 +10,21 @@ class ESCI_Controller extends CI_Controller {
      * application name
      * @var string
      * */
-    protected $esci_app_name;
+    public $esci_app_name;
 
     /**
      * application version
      * @var string
      */
-    protected $esci_app_version;
-    protected $esci_debug_info;
+    public $esci_app_version;
+    public $esci_debug_info;
 
     /**
      * data for view
      * @var array of string
      */
-    protected $view_data = array();
+    public $view_data = array();
+    public $tpldir = 'paperdash';
 
     public function __construct() {
         parent::__construct();
@@ -34,16 +35,13 @@ class ESCI_Controller extends CI_Controller {
         $this->load->database();
         $this->load->add_package_path(FCPATH . 'vendor/ion_auth/');
 
-        //--- avoid config:auto loader, load here
-        $this->load->library(
-                array('session', 'escihybridauth', 'form_validation')
-        );
+        //--- avoid config:auto loader, load helpers and libraries here
         $this->load->helper(
                 array('url', 'form', 'html', 'language')
         );
-
-        $this->load->library('ion_auth');
-        $this->load->library('escihybridauth');
+        $this->load->library(
+                array('session', 'ion_auth', 'escihybridauth', 'form_validation')
+        );
 
         //--- debhug info
         $this->esci_debug_info = array(
@@ -51,56 +49,8 @@ class ESCI_Controller extends CI_Controller {
             'database_host' => $this->db->hostname
         );
 
-        //--- initialize page attributes, might be overriden later
-        $htmlpageattr = array(
-            'apple-touch-icon' => '../assets/paper-dashboard/img/apple-icon.png',
-            'icon' => '../assets/paper-dashboard/img/favicon.png',
-            'title' => $this->esci_app_name . ' - ' . $this->esci_app_version
-        );
-        $this->view_data['htmlpageattr'] = $htmlpageattr;
-
-        $this->view_data['esci_debug_info'] = $this->esci_debug_info;
-        $this->view_data['site_url'] = site_url();
-
-        $this->view_data['site_label'] = $this->esci_app_name . ' - ' . $this->esci_app_version;
-
-        $this->view_data['site_logo'] = TRUE;
-        $this->view_data['site_logo_img_src'] = site_url() . '/assets/paper-dashboard/img/logo-small.png';
-
-        $this->view_data['page_title_lable'] = $this->esci_app_name . ' - ' . $this->esci_app_version;
-
-        $this->view_data['page_footer_nav_items'] = array();
-        $this->view_data['page_footer_nav_items'][] = array(
-            'href' => 'https://www.creative-tim.com',
-            'caption' => 'Creative Tim',
-            'target' => '_blank');
-        $this->view_data['page_footer_nav_items'][] = array(
-            'href' => 'https://blog.creative-tim.com',
-            'caption' => 'Blog',
-            'target' => '_blank');
-        $this->view_data['page_footer_nav_items'][] = array(
-            'href' => 'https://www.creative-tim.com/license',
-            'caption' => 'Licenses',
-            'target' => '_blank');
-
-
-        $this->view_data['page_footer_copyright'] = '2019, made with <i class="fa fa-heart heart"></i> by Creative Tim';
-
-        $this->view_data['display_setting'] = TRUE;
-
-
 // should do nav generation here
         //then.... :
-
-        $this->view_data['side_nav_last_item'] = array(
-            'href' => 'https://www.creative-tim.com/upgrade.html',
-            'caption' => 'Upgrade to PRO',
-            'iclass' => 'nc-icon nc-spaceship',
-            'target' => ''
-        );
-
-
-
         //--- navigations, might be template dependent :(
         // site structure
         // public area vs restricted area
@@ -151,6 +101,40 @@ class ESCI_Controller extends CI_Controller {
             )
         );
     }
+
+    // --------------------------------------------------------------------
+
+    public function initialize_twig() {
+
+        // maybe config is enough
+        $this->load->library('UI_Paperdash', NULL, 'UICONF');
+        $this->UICONF->tpldir;
+
+        $this->twig_config = [
+            'paths' => [
+                APPPATH . 'views' . DIRECTORY_SEPARATOR . $this->UICONF->tpldir . DIRECTORY_SEPARATOR,
+                APPPATH . 'views' . DIRECTORY_SEPARATOR . $this->UICONF->tpldir . DIRECTORY_SEPARATOR . 'esciauth' . DIRECTORY_SEPARATOR,
+                VIEWPATH],
+            'functions_safe' => ['lang', 'form_checkbox', 'form_submit']
+        ];
+
+        $this->load->library('twig', $this->twig_config);
+    }
+
+    public function twig_display($view, $data) {
+        $this->initialize_twig();
+
+        $this->load->library('base_renderer');
+        $this->base_renderer->initialize_page_data();
+        $this->base_renderer->render_page_elements();
+
+        //override!
+        $merge_data = array_merge($this->view_data, $data);
+
+        $this->twig->display($view, $merge_data);
+    }
+
+    // --------------------------------------------------------------------
 
     public function show_debug_info() {
         foreach ($this->esci_debug_info as $key => $val) {

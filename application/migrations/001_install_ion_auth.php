@@ -17,7 +17,7 @@ class Migration_Install_ion_auth extends CI_Migration {
         echo 'load config ion_auth, we need the tables...<br>';
         $this->load->config('ion_auth', TRUE);
         $this->tables = $this->config->item('tables', 'ion_auth');
-        
+
         var_dump($this->tables);
     }
 
@@ -30,6 +30,78 @@ class Migration_Install_ion_auth extends CI_Migration {
         $_sqlstring = "SET FOREIGN_KEY_CHECKS=0;";
         $this->db->query($_sqlstring);
         echo "$_sqlstring<br>";
+
+        $this->up_group_table();
+        $this->up_user_table();
+        $this->up_user_group_table();
+        $this->up_authentications_table();
+
+        //-----------------------------------------------------------------------
+        //--- CONSTRAINTS, FOREIGN KEYS
+        echo "--- CONSTRAINTS, FOREIGN KEYS --- <br>";
+
+        $_sqlstring = "
+            ALTER TABLE " . $this->tables['users'] . " " .
+                "ADD CONSTRAINT `uq_" . $this->tables['users'] . "_email` " .
+                "UNIQUE (`email`);";
+        $this->db->query($_sqlstring);
+        echo "CONSTRAINT " . $this->tables['users'] . ": $_sqlstring<br>";
+
+        $_sqlstring = "
+            ALTER TABLE " . $this->tables['users'] . " " .
+                "ADD CONSTRAINT `uq_" . $this->tables['users'] . "_activation_selector` " .
+                "UNIQUE (`activation_selector`);";
+        $this->db->query($_sqlstring);
+        echo "CONSTRAINT " . $this->tables['users'] . ": $_sqlstring<br>";
+
+        $_sqlstring = "
+            ALTER TABLE " . $this->tables['users'] . " " .
+                "ADD CONSTRAINT `uq_" . $this->tables['users'] . "_forgotten_password_selector` " .
+                "UNIQUE (`forgotten_password_selector`);";
+        $this->db->query($_sqlstring);
+        echo "CONSTRAINT " . $this->tables['users'] . ": $_sqlstring<br>";
+
+        $_sqlstring = "
+            ALTER TABLE " . $this->tables['users'] . " " .
+                "ADD CONSTRAINT `uq_" . $this->tables['users'] . "_remember_selector` " .
+                "UNIQUE (`remember_selector`);";
+        $this->db->query($_sqlstring);
+        echo "CONSTRAINT " . $this->tables['users'] . ": $_sqlstring<br>";
+
+        $_sqlstring = "
+            ALTER TABLE " . $this->tables['users_groups'] . " " .
+                "ADD CONSTRAINT `uq_" . $this->tables['users_groups'] . "` " .
+                "UNIQUE (`user_id`, `group_id`)"
+                . ";";
+        $this->db->query($_sqlstring);
+        echo "CONSTRAINT " . $this->tables['users_groups'] . ": $_sqlstring<br>";
+
+        $_sqlstring = "
+            ALTER TABLE " . $this->tables['users_groups'] . " " .
+                "ADD CONSTRAINT `fk_" . $this->tables['users_groups'] . "1` " .
+                "FOREIGN KEY (`user_id`) REFERENCES `" . $this->tables['users'] . "`(`id`) "
+                . "ON DELETE CASCADE ON UPDATE NO ACTION"
+                . ";";
+        $this->db->query($_sqlstring);
+        echo "CONSTRAINT - FOREIGN KEY " . $this->tables['users_groups'] . ": $_sqlstring<br>";
+
+        $_sqlstring = "
+            ALTER TABLE " . $this->tables['users_groups'] . " " .
+                "ADD CONSTRAINT `fk_" . $this->tables['users_groups'] . "2` " .
+                "FOREIGN KEY (`group_id`) REFERENCES `" . $this->tables['groups'] . "`(`id`) "
+                . "ON DELETE CASCADE ON UPDATE NO ACTION"
+                . ";";
+        $this->db->query($_sqlstring);
+        echo "CONSTRAINT - FOREIGN KEY " . $this->tables['users_groups'] . ": $_sqlstring<br>";
+
+        $_sqlstring = "SET FOREIGN_KEY_CHECKS=1;";
+        $this->db->query($_sqlstring);
+        echo "$_sqlstring<br>";
+
+        echo "<p>001_install_ion_auth.php completed</p>";
+    }
+
+    public function up_group_table() {
 
         //-----------------------------------------------------------------------
         //---- GROUPS TABLE
@@ -138,6 +210,9 @@ class Migration_Install_ion_auth extends CI_Migration {
         );
 
         $this->db->insert_batch($this->tables['groups'], $data);
+    }
+
+    public function up_user_table() {
 
         //-----------------------------------------------------------------------
         //---- USERS TABLE
@@ -163,31 +238,41 @@ class Migration_Install_ion_auth extends CI_Migration {
             ),
             'password' => array(
                 'type' => 'VARCHAR',
-                'constraint' => '80',
-            ),
-            'salt' => array(
-                'type' => 'VARCHAR',
-                'constraint' => '40',
-                'null' => TRUE
+                'constraint' => '255',
             ),
             'email' => array(
                 'type' => 'VARCHAR',
                 'constraint' => '254'
             ),
+            'activation_selector' => array(
+                'type' => 'VARCHAR',
+                'constraint' => '255',
+                'null' => TRUE
+            ),
             'activation_code' => array(
                 'type' => 'VARCHAR',
-                'constraint' => '40',
+                'constraint' => '255',
+                'null' => TRUE
+            ),
+            'forgotten_password_selector' => array(
+                'type' => 'VARCHAR',
+                'constraint' => '255',
                 'null' => TRUE
             ),
             'forgotten_password_code' => array(
                 'type' => 'VARCHAR',
-                'constraint' => '40',
+                'constraint' => '255',
                 'null' => TRUE
             ),
             'forgotten_password_time' => array(
                 'type' => 'INT',
                 'constraint' => '11',
                 'unsigned' => TRUE,
+                'null' => TRUE
+            ),
+            'remember_selector' => array(
+                'type' => 'VARCHAR',
+                'constraint' => '40',
                 'null' => TRUE
             ),
             'remember_code' => array(
@@ -257,7 +342,6 @@ class Migration_Install_ion_auth extends CI_Migration {
             'ip_address' => '127.0.0.1',
             'username' => 'administrator',
             'password' => '$2a$07$SeBknntpZror9uyftVopmu61qg0ms8Qv1yV6FG.kQOSM.9QhmTo36',
-            'salt' => '',
             'email' => 'admin@admin.com',
             'activation_code' => '',
             'forgotten_password_code' => NULL,
@@ -275,6 +359,9 @@ class Migration_Install_ion_auth extends CI_Migration {
 
         echo "Insert into table " . $this->tables['users'] . "<br>";
         $this->db->insert($this->tables['users'], $data);
+    }
+
+    public function up_user_group_table() {
 
         //-----------------------------------------------------------------------
         //---- USERS GROUPS TABLE
@@ -378,6 +465,9 @@ class Migration_Install_ion_auth extends CI_Migration {
         echo "CREATE TABLE " . $this->tables['login_attempts'] . "<br>";
         $this->dbforge->create_table($this->tables['login_attempts']);
         //-----------------------------------------------------------------------
+    }
+
+    public function up_authentications_table() {
         //-----------------------------------------------------------------------
         //---- AUTHENTICATIONS TABLE
         // DROP TABLE $this->tables['authentications'] if it exists
@@ -438,36 +528,6 @@ class Migration_Install_ion_auth extends CI_Migration {
         //-----------------------------------------------------------------------
         echo "CREATE TABLE " . $this->tables['authentications'] . "<br>";
         $this->dbforge->create_table($this->tables['authentications']);
-
-        //-----------------------------------------------------------------------
-        //--- CONSTRAINTS, FOREIGN KEYS
-        echo "--- CONSTRAINTS, FOREIGN KEYS --- <br>";
-        $_sqlstring = "
-            ALTER TABLE " . $this->tables['users_groups'] . " " .
-                "ADD CONSTRAINT `uq_" . $this->tables['users_groups'] . "` " .
-                "UNIQUE (`user_id`, `group_id`);";
-        $this->db->query($_sqlstring);
-        echo "finishing $_sqlstring<br>";
-
-        $_sqlstring = "
-            ALTER TABLE " . $this->tables['users_groups'] . " " .
-                "ADD CONSTRAINT `fk_" . $this->tables['users_groups'] . "1` " .
-                "FOREIGN KEY (`user_id`) REFERENCES `" . $this->tables['users'] . "`(`id`) ON DELETE CASCADE ON UPDATE NO ACTION;";
-        $this->db->query($_sqlstring);
-        echo "finishing $_sqlstring<br>";
-
-        $_sqlstring = "
-            ALTER TABLE " . $this->tables['users_groups'] . " " .
-                "ADD CONSTRAINT `fk_" . $this->tables['users_groups'] . "2` " .
-                "FOREIGN KEY (`group_id`) REFERENCES `" . $this->tables['groups'] . "`(`id`) ON DELETE CASCADE ON UPDATE NO ACTION;";
-        $this->db->query($_sqlstring);
-        echo "finishing $_sqlstring<br>";
-
-        $_sqlstring = "SET FOREIGN_KEY_CHECKS=1;";
-        $this->db->query($_sqlstring);
-        echo "$_sqlstring<br>";
-
-        echo "<p>001_install_ion_auth.php completed</p>";
     }
 
     public function down() {

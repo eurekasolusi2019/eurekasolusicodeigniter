@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    {{ html_head | raw }}
+
+    <body class="">
+        <div class="wrapper ">
+            <div class="sidebar" data-color="white" data-active-color="danger">
+                <!--
+                  Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
+                -->
+                {{ page_logo | raw }}
+                <div class="sidebar-wrapper">
+                    {#{{ page_sidebar_nav | raw }}#}
+                </div>
+            </div>
+            <div class="main-panel">
+                <!-- Navbar -->
+                {{ page_main_navbar | raw}}
+                <!-- End Navbar -->
+                <!-- <div class="panel-header panel-header-sm">
+
+
+          </div> -->
+                <div class="content">
+                    <h1>{{ login_heading }}</h1>
+                    <p>{{ login_subheading }}</p>
+
+                    {{ form_open("esciauth/login") }}
+
+                    <div class="col-md-3 px-1">
+                        <fieldset>
+                            <label class="block clearfix">
+                                {{ login_identity_label }}
+                                <span class="block input-icon input-icon-right">
+                                    <i class="nc-icon nc-single-02"></i>
+                                    {{ form_input_identity | raw }}
+
+                                </span>
+                            </label>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-3 px-1">
+                        <fieldset>
+                            <label class="block clearfix">
+                                {{ login_password_label }}
+                                <span class="block input-icon input-icon-right">
+                                    <i class="nc-icon nc-key-25"></i>
+                                    {{ form_input_password | raw }}
+                                </span>
+                            </label>
+                        </fieldset>
+                        <div class="block clearfix">
+                            {{ html_form_submit | raw }}
+                        </div>
+                        <div class="block clearfix">
+                            {{ anchor_google_login | raw}}
+                        </div>
+
+                        <div class="space-4"></div>
+
+                    </div>
+                    {{ form_close() }}
+
+                </div>
+                {{ page_footer | raw }}
+            </div>
+        </div>
+        {{ pg_js_bottom | raw }}
+    </body>
+
+</html>

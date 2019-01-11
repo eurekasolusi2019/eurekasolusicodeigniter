@@ -304,7 +304,7 @@ class Ion_auth_model extends CI_Model {
      *
      * @param string    $password
      * @param string    $hash_password_db
-     * @param string    $identity            optional @deprecated only for BC SHA1
+     * @param string    $identity           optional @deprecated only for BC SHA1
      *
      * @return bool
      * @author Mathew
@@ -353,9 +353,9 @@ class Ion_auth_model extends CI_Model {
     /**
      * Get a user by its activation code
      *
-     * @param bool       $user_code    the activation code 
-     *                                 It's the *user* one, containing "selector.validator"
-     *                                 the one you got in activation_code member
+     * @param bool       $user_code the activation code 
+     *                              It's the *user* one, containing "selector.validator"
+     *                              the one you got in activation_code member
      *
      * @return    bool|object
      * @author Indigo
@@ -381,8 +381,8 @@ class Ion_auth_model extends CI_Model {
      * Validates and removes activation code.
      *
      * @param int|string $id        the user identifier
-     * @param bool       $code        the *user* activation code 
-     *                                 if omitted, simply activate the user without check
+     * @param bool       $code      the *user* activation code 
+     *                              if omitted, simply activate the user without check
      *
      * @return bool
      * @author Mathew
@@ -895,7 +895,7 @@ class Ion_auth_model extends CI_Model {
         }
 
         // Hash something anyway, just to take up time
-        $this->hash_password($password);
+        // $this->hash_password($password);
 
         $this->increase_login_attempts($identity);
 
@@ -2395,12 +2395,12 @@ class Ion_auth_model extends CI_Model {
      * This is a user code
      *
      * @param $selector_size int    size of the selector token
-     * @param $validator_size int    size of the validator token
+     * @param $validator_size int   size of the validator token
      *
      * @return object
-     *             ->selector            simple token to retrieve the user (to store in DB)
-     *             ->validator_hashed    token (hashed) to validate the user (to store in DB)
-     *             ->user_code            code to be used user-side (in cookie or URL)
+     *          ->selector          simple token to retrieve the user (to store in DB)
+     *          ->validator_hashed  token (hashed) to validate the user (to store in DB)
+     *          ->user_code         code to be used user-side (in cookie or URL)
      */
     protected function _generate_selector_validator_couple($selector_size = 40, $validator_size = 128) {
         // The selector is a simple token to retrieve the user
@@ -2425,11 +2425,11 @@ class Ion_auth_model extends CI_Model {
     /**
      * Retrieve remember cookie info
      *
-     * @param $user_code string    A user code of the form "selector.validator"
+     * @param $user_code string A user code of the form "selector.validator"
      *
      * @return object
-     *             ->selector        simple token to retrieve the user in DB
-     *             ->validator        token to validate the user (check against hashed value in DB)
+     *          ->selector      simple token to retrieve the user in DB
+     *          ->validator     token to validate the user (check against hashed value in DB)
      */
     protected function _retrieve_selector_validator_couple($user_code) {
         // Check code

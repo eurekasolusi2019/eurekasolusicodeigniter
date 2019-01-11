@@ -4,21 +4,87 @@ if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
 /**
- * use login_view
- * general_model (autoloaded)
  */
-class EsciAuth extends ESCI_Controller {
+class Esciauth extends ESCI_Controller {
 
+    public $redirectsuccess = 'home';
+    public $redirectrelogin = 'esciauth/login';
     public $access_code = 0;
     public $require_login = 0;
+    public $tpldir = 'paperdash';
+    public $view_data = array();
+
+    public function __construct() {
+        parent::__construct();
+        $this->lang->load('auth');
+        
+        if (!isset($identity) || !isset($password)):
+            $identity = array(
+                'name' => 'identity',
+                'id' => 'identity',
+                'type' => 'text',
+                'value' => '',
+                'class' => 'form-control',
+                'placeholder' => "email/username", 
+            );
+            $password = array(
+                'name' => 'password',
+                'id' => 'password',
+                'type' => 'password',
+                'class' => 'form-control',
+                'placeholder' => "Password", 
+            );
+        endif;
+
+        $this->view_data['display_setting'] = false;
+
+        $this->view_data['login_heading'] = lang('login_heading');
+        $this->view_data['login_subheading'] = lang('login_subheading');
+
+        $this->view_data['login_identity_label'] = lang('login_identity_label');
+        $this->view_data['login_password_label'] = lang('login_password_label');
+        $this->view_data['login_remember_label'] = lang('login_remember_label');
+        $this->view_data['login_submit_btn'] = lang('login_submit_btn');
+
+        $this->view_data['html_form_submit'] = form_submit('submit', lang('login_submit_btn'), 'class="width-35 btn btn-sm btn-success"');
+
+        $this->view_data['form_input_identity'] = form_input($identity);
+
+        $this->view_data['form_input_password'] = form_input($password);
+        $this->view_data['anchor_google_login'] = anchor(base_url('esciauth/google_login'),'Login With Google.');
+
+    }
 
     public function index() {
+        
+       $this->view_data['display_setting'] = false;
+        
 
         //validate form input
         $this->form_validation->set_rules('identity', str_replace(':', '', $this->lang->line('login_identity_label')), 'required');
         $this->form_validation->set_rules('password', str_replace(':', '', $this->lang->line('login_password_label')), 'required');
+        if ($this->ion_auth->logged_in()) {
+            $this->view_data['message'] = 'Anda sudah login, anda dapat <a href="' . base_url() . '">langsung ke halaman muka</a> atau melakukan login ulang';
+        }
 
-        if ($this->form_validation->run() == true) {
+        $this->twig_display('login2', $this->view_data);
+    }
+
+    /**
+     * Esciauth::login
+     * Log the user in
+     */
+    public function login() {
+        $this->view_data['title'] = $this->lang->line('login_heading');
+
+        $this->view_data['display_setting'] = false;
+
+        // validate form input
+        $this->form_validation->set_rules('identity', str_replace(':', '', $this->lang->line('login_identity_label')), 'required');
+        $this->form_validation->set_rules('password', str_replace(':', '', $this->lang->line('login_password_label')), 'required');
+
+
+        if ($this->form_validation->run() === TRUE) {
             // check to see if the user is logging in
             // check for "remember me"
             $remember = (bool) $this->input->post('remember');
@@ -27,41 +93,41 @@ class EsciAuth extends ESCI_Controller {
                 //if the login is successful
                 //redirect them back to the home page
                 $this->session->set_flashdata('message', $this->ion_auth->messages());
-                die('redirect to home');
-                redirect('home', 'refresh');
+                redirect($this->redirectsuccess, 'refresh');
             } else {
                 // if the login was un-successful
                 // redirect them back to the login page
                 $this->session->set_flashdata('message', $this->ion_auth->errors());
-                die('redirect to login');
-                redirect('login', 'refresh'); // use redirects instead of loading views for compatibility with MY_Controller libraries
+                redirect($this->redirectrelogin, 'refresh'); // use redirects instead of loading views for compatibility with MY_Controller libraries
             }
         } else {
+            // the user is not logging in so display the login page
+            // set the flash data error message if there is one
+            $this->view_data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
 
             // the user is not logging in so display the login page
             // set the flash data error message if there is one
-            $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
-            $this->data['identity'] = array('name' => 'identity',
+            $this->view_data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+            $this->view_data['identity'] = array('name' => 'identity',
                 'id' => 'identity',
                 'type' => 'text',
                 'value' => $this->form_validation->set_value('identity'),
                 'class' => 'form-control',
                 'placeholder' => 'Login'
             );
-            $this->data['password'] = array('name' => 'password',
+            $this->view_data['password'] = array('name' => 'password',
                 'id' => 'password',
                 'type' => 'password',
                 'class' => 'form-control',
                 'placeholder' => 'Password'
             );
-
-            if ($this->ion_auth->logged_in()) {
-                $this->data['message'] = 'Anda sudah login, anda dapat <a href="' . base_url() . '">langsung ke halaman muka</a> atau melakukan login ulang';
-            }
-
-            die('open login view');
-            $this->load->view('login_view', $this->data);
         }
+
+        if ($this->ion_auth->logged_in()) {
+            $this->view_data['message'] = 'Anda sudah login, anda dapat <a href="' . base_url() . '">langsung ke halaman muka</a> atau melakukan login ulang';
+        }
+
+        $this->twig_display('login2', $this->view_data);
     }
 
     public function google_login($mode = NULL) {
@@ -92,7 +158,7 @@ class EsciAuth extends ESCI_Controller {
             if ($this->ion_auth->login($profile->emailVerified, '', FALSE, 'Google')) {
 
                 $this->session->set_flashdata('message', $this->ion_auth->messages());
-                redirect('home', 'refresh');
+                redirect($this->redirectsuccess, 'refresh');
             } else {
                 $_message = $this->ion_auth->errors();
                 if (!empty($profile->emailVerified)) {
@@ -114,6 +180,7 @@ class EsciAuth extends ESCI_Controller {
             redirect('login', 'refresh');
         }
     }
+
 // todo: foreach provider, if enabled, set "approval_prompt" => "force",
     function set_config_with_prompt() {
         return array(
@@ -132,7 +199,7 @@ class EsciAuth extends ESCI_Controller {
                 "Google" => array(
                     "enabled" => TRUE,
                     "keys" => array("id" => "102711109122-0ij5pqmc0kbbmmlouhds16pdmgj80npi.apps.googleusercontent.com", "secret" => "-r_8RFRDkTJH5_8V5SsSE2Dx"),
-                    'callback' => 'http://localhost/eurekasolusicodeigniter/' .'esciauth/google_login',
+                    'callback' => 'http://localhost/eurekasolusicodeigniter/' . 'esciauth/google_login',
                     "approval_prompt" => "force",
                 ),
                 "Facebook" => array(
@@ -183,7 +250,7 @@ class EsciAuth extends ESCI_Controller {
             if ($this->ion_auth->is_admin()) {
                 redirect("user_management", 'refresh');
             } else {
-                redirect('home', 'refresh');
+                redirect($this->redirectsuccess, 'refresh');
             }
         } else {
             // redirect them to the forgot password page
@@ -208,21 +275,21 @@ class EsciAuth extends ESCI_Controller {
 
 
         if ($this->form_validation->run() == false) {
-            $this->data['type'] = $this->config->item('identity', 'ion_auth');
+            $this->view_data['type'] = $this->config->item('identity', 'ion_auth');
             // setup the input
-            $this->data['identity'] = array('name' => 'identity',
+            $this->view_data['identity'] = array('name' => 'identity',
                 'id' => 'identity',
             );
 
             if ($this->config->item('identity', 'ion_auth') != 'email') {
-                $this->data['identity_label'] = $this->lang->line('forgot_password_identity_label');
+                $this->view_data['identity_label'] = $this->lang->line('forgot_password_identity_label');
             } else {
-                $this->data['identity_label'] = $this->lang->line('forgot_password_email_identity_label');
+                $this->view_data['identity_label'] = $this->lang->line('forgot_password_email_identity_label');
             }
 
             // set any errors and display the form
-            $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
-            $this->_render_page('auth/forgot_password', $this->data);
+            $this->view_data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+            $this->_render_page('auth/forgot_password', $this->view_data);
         } else {
             $identity_column = $this->config->item('identity', 'ion_auth');
             $identity = $this->ion_auth->where($identity_column, $this->input->post('identity'))->users()->row();
@@ -274,32 +341,32 @@ class EsciAuth extends ESCI_Controller {
             if ($this->form_validation->run() == false) {
                 // display the form
                 // set the flash data error message if there is one
-                $this->data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
+                $this->view_data['message'] = (validation_errors()) ? validation_errors() : $this->session->flashdata('message');
 
-                $this->data['min_password_length'] = $this->config->item('min_password_length', 'ion_auth');
-                $this->data['new_password'] = array(
+                $this->view_data['min_password_length'] = $this->config->item('min_password_length', 'ion_auth');
+                $this->view_data['new_password'] = array(
                     'name' => 'new',
                     'id' => 'new',
                     'type' => 'password',
-                    'pattern' => '^.{' . $this->data['min_password_length'] . '}.*$',
+                    'pattern' => '^.{' . $this->view_data['min_password_length'] . '}.*$',
                 );
-                $this->data['new_password_confirm'] = array(
+                $this->view_data['new_password_confirm'] = array(
                     'name' => 'new_confirm',
                     'id' => 'new_confirm',
                     'type' => 'password',
-                    'pattern' => '^.{' . $this->data['min_password_length'] . '}.*$',
+                    'pattern' => '^.{' . $this->view_data['min_password_length'] . '}.*$',
                 );
-                $this->data['user_id'] = array(
+                $this->view_data['user_id'] = array(
                     'name' => 'user_id',
                     'id' => 'user_id',
                     'type' => 'hidden',
                     'value' => $user->id,
                 );
-                $this->data['csrf'] = $this->_get_csrf_nonce();
-                $this->data['code'] = $code;
+                $this->view_data['csrf'] = $this->_get_csrf_nonce();
+                $this->view_data['code'] = $code;
 
                 // render
-                $this->_render_page('auth/reset_password', $this->data);
+                $this->_render_page('auth/reset_password', $this->view_data);
             } else {
                 // do we have a valid request?
                 if ($this->_valid_csrf_nonce() === FALSE || $user->id != $this->input->post('user_id')) {
@@ -331,29 +398,33 @@ class EsciAuth extends ESCI_Controller {
         }
     }
 
-    	public function _get_csrf_nonce()
-	{
-		$this->load->helper('string');
-		$key   = random_string('alnum', 8);
-		$value = random_string('alnum', 20);
-		$this->session->set_flashdata('csrfkey', $key);
-		$this->session->set_flashdata('csrfvalue', $value);
+    public function _get_csrf_nonce() {
+        $this->load->helper('string');
+        $key = random_string('alnum', 8);
+        $value = random_string('alnum', 20);
+        $this->session->set_flashdata('csrfkey', $key);
+        $this->session->set_flashdata('csrfvalue', $value);
 
-		return array($key => $value);
-	}
+        return array($key => $value);
+    }
 
-	public function _valid_csrf_nonce()
-	{
-		$csrfkey = $this->input->post($this->session->flashdata('csrfkey'));
-		if ($csrfkey && $csrfkey == $this->session->flashdata('csrfvalue'))
-		{
-			return TRUE;
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
+    public function _valid_csrf_nonce() {
+        $csrfkey = $this->input->post($this->session->flashdata('csrfkey'));
+        if ($csrfkey && $csrfkey == $this->session->flashdata('csrfvalue')) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
+
+    public function _render_page($view, $data = null, $returnhtml = false) {//I think this makes more sense
+        $this->viewdata = (empty($data)) ? $this->view_data : $data;
+
+        $view_html = $this->load->view($view, $this->viewdata, $returnhtml);
+
+        if ($returnhtml)
+            return $view_html; //This will return html on 3rd argument being true
+    }
 
 }
 

@@ -4,6 +4,7 @@ if (!defined('BASEPATH'))
     exit('No direct script access allowed');
 
 /**
+ *  TODO: REMOVE THIS
  * use login_view
  * general_model (autoloaded)
  */
@@ -68,12 +69,12 @@ class Login extends ESCI_Controller {
         if ($mode == 'prompt') {
             $prompt_config = $this->set_config_with_prompt();
 
-            $this->load->library('escihybridauth', $prompt_config);
+            $this->load->library('EsciHybridauth', $prompt_config);
             $params = array(
                 'hauth_return_to' => base_url("index.php/login/google_login/prompt"),
             );
         } else {
-            $this->load->library('escihybridauth');
+            $this->load->library('EsciHybridauth');
             $params = array(
                 'hauth_return_to' => base_url("index.php/login/google_login"),
             );
@@ -83,7 +84,7 @@ class Login extends ESCI_Controller {
             $params['openid_identifier'] = $_REQUEST['openid_identifier'];
         }
         try {
-            $adapter = $this->escihybridauth->HA->authenticate($provider_id, $params);
+            $adapter = $this->EsciHybridauth->HA->authenticate($provider_id, $params);
             $profile = $adapter->getUserProfile();
 
             if ($this->ion_auth->login($profile->emailVerified, '', FALSE, 'Google')) {
@@ -98,14 +99,14 @@ class Login extends ESCI_Controller {
                 }
 
                 $this->session->set_flashdata('message', $_message);
-                $adapter->disconnect(); // $this->escihybridauth->HA->logoutAllProviders(); // $adapter->logout();
+                $adapter->disconnect(); // $this->EsciHybridauth->HA->logoutAllProviders(); // $adapter->logout();
                 $this->index();
             }
         } catch (Exception $e) {
             $_message = $e->getMessage();
             log_message('error', $_message);
             $this->session->set_flashdata('message', 'Google Login gagal:<br>' . $_message);
-            $this->escihybridauth->HA->logoutAllProviders();
+            $this->EsciHybridauth->HA->logoutAllProviders();
             redirect('login', 'refresh');
         }
     }
