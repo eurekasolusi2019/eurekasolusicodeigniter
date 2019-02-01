@@ -9,6 +9,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 $config['esci_app_name'] = 'ESCI Quick Starter DEV';
+$config['esci_app_owner'] = 'Eureka Solusi';
 $config['esci_app_version'] = '0.0.1';
 
 
@@ -89,7 +90,7 @@ $config['url_suffix'] = '';
 | than english.
 |
 */
-$config['language']	= 'english';
+$config['language']	= 'indonesian';
 
 /*
 |--------------------------------------------------------------------------

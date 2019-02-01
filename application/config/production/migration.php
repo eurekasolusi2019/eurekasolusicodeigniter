@@ -43,7 +43,7 @@ $config['migration_type'] = 'sequential';
 | will migrate up. This must be set.
 |
 */
-$config['migration_table'] = 'sys_migrations';
+$config['migration_table'] = '__core_migrations';
 
 /*
 |--------------------------------------------------------------------------

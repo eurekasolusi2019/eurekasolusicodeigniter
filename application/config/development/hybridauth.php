@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+$this_baseurl = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || isset($_ENV['FORCE_HTTPS'])) ? 'https' : 'http';
+$this_baseurl .= '://' . $_SERVER['HTTP_HOST'];
+$this_baseurl .= str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
+
 /*
 | -------------------------------------------------------------------------
 | HybridAuth settings
@@ -25,7 +29,7 @@ $config['hybridauth'] = array(
     "Google" => array(
       "enabled" => TRUE,
       "keys" => array("id" => "102711109122-0ij5pqmc0kbbmmlouhds16pdmgj80npi.apps.googleusercontent.com", "secret" => "-r_8RFRDkTJH5_8V5SsSE2Dx"),
-      'callback' => 'http://localhost/eurekasolusicodeigniter/' .'esciauth/google_login',
+      'callback' => $this_baseurl .'esciauth/google_login',
     ),
     "Facebook" => array(
       "enabled" => FALSE,

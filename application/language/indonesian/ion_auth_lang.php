@@ -50,9 +50,10 @@ $lang['activation_email_unsuccessful']		        = 'Tidak Dapat Mengirimkan Email
 $lang['deactivate_current_user_unsuccessful']		= 'Anda tidak dapat Nonaktifkan akun anda sendiri.';
 
 // Login / Logout
-$lang['login_successful']							= 'Log In Berhasil';
-$lang['login_unsuccessful']							= 'Log In Gagal';
-$lang['login_unsuccessful_not_active']	            = 'Akun Tidak Aktif';
+$lang['login_successful']							= 'Login Berhasil';
+$lang['login_unsuccessful']							= 'Login Gagal, akun atau password Anda salah';
+$lang['login_unsuccessful_not_is_active']	            = 'Akun Tidak Aktif';
+$lang['login_unsuccessful_not_active']       = 'Akun Tidak Aktif Atau Belum Disetujui';
 $lang['login_timeout']								= 'Sementara Terkunci. Coba Beberapa Saat Lagi.';
 $lang['logout_successful']							= 'Log Out Berhasil';
 
@@ -84,3 +85,7 @@ $lang['email_forgot_password_heading']				= 'Setel Ulang Kata Sandi untuk %s';
 $lang['email_forgot_password_subheading']			= 'Silahkan klik tautan berikut untuk %s.';
 $lang['email_forgot_password_link']					= 'Setel Ulang Kata Sandi';
 
+// New Password Email
+$lang['email_new_password_subject']					= 'Kata Sandi Baru';
+$lang['email_new_password_heading']					= 'Kata Sandi Baru Untuk %s';
+$lang['email_new_password_subheading']			    = 'Kata Sandi Telah Diubah Ke: %s';
