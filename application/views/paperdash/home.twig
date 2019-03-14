@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    {{ html_head | raw }}
+
+    <body class="">
+        <div class="wrapper ">
+            <div class="sidebar" data-color="white" data-active-color="danger">
+                <!--
+                  Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
+                -->
+                {{ page_logo | raw }}
+                <div class="sidebar-wrapper">
+                    {{ page_sidebar_nav | raw }}
+                </div>
+            </div>
+            <div class="main-panel">
+                <!-- Navbar -->
+                {{ page_main_navbar | raw}}
+                <!-- End Navbar -->
+
+                <div class="content">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card" >
+                                <div class="card-header ">
+                                    <h5 class="card-title">{{ content_title }}</h5>
+
+                                    <p class="card-category">{{ content_subtitle }}</p>
+
+                                </div>
+                                <div class="card-body">
+                                    {# show message here #}
+                                    {% if message != '' %}
+                                        <div class="alert alert-success" role="alert">
+                                            {{ message | raw }}
+                                        </div>
+                                    {% endif %}
+
+                                    {{ output | raw }}
+                                </div>
+                                <div class="card-footer ">
+                                    <hr>
+                                    <div class="stats">
+                                        <i class="{{ content_footericon }}"></i> {{ content_footer }}
+                                    </div>
+                                </div>
+                            </div> {#card#}
+                        </div>
+                    </div>
+
+                </div> {#content#}
+                {{ page_footer | raw }}
+            </div> {#main panel#}
+        </div> {#wrapper#}
+        {{ page_js_bottom | raw }}
+    </body>
+
+</html>

@@ -83,7 +83,8 @@ class Db_util extends ESCI_Controller {
 
             //--- loop to drop each tables
             foreach ($dbquery_result as $resultobj) {
-                $tablename = $resultobj->Tables_in_es_ci;
+                $strprop = 'Tables_in_'.$this->db->database;
+                $tablename = $resultobj->$strprop;
 
                 echo "DROP TABLE " . $tablename . " if it exists<br>";
                 $this->dbforge->drop_table($tablename, TRUE);

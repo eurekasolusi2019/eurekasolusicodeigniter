@@ -37,8 +37,9 @@ $config['hybridauth'] = array(
       "trustForwarded" => FALSE,
     ),
     "Twitter" => array(
-      "enabled" => FALSE,
-      "keys" => array("key" => "", "secret" => ""),
+      "enabled" => TRUE,
+      "keys" => array("key" => "4g52tLKR641TqfaeuRLNMsgVa", "secret" => "PEXMKe9VQ5arw7mKpKfpZPj6hVvZo2g44O77WGTKRlp0Po0oSL"),
+      'callback' => $this_baseurl .'hauth/window/Twitter',
       "includeEmail" => FALSE,
     ),
     "Live" => array(

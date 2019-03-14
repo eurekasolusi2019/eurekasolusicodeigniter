@@ -10,11 +10,12 @@ class Hauth extends ESCI_Controller {
     /**
      * {@inheritdoc}
      */
+    public $require_login = 0;
     public function __construct() {
         parent::__construct();
 
         $this->load->helper('url');
-        $this->load->library('EsciHybridauth');
+        $this->load->library('escihybridauth');
     }
 
     /**
@@ -25,17 +26,17 @@ class Hauth extends ESCI_Controller {
         $providers = array();
         
         
-var_dump($this->EsciHybridauth->HA->getProviders());
+var_dump($this->escihybridauth->HA->getProviders());
 
-    foreach ($this->EsciHybridauth->HA->getProviders() as $provider_id) {
+    foreach ($this->escihybridauth->HA->getProviders() as $provider_id) {
 echo '<br>'.$provider_id . ':';
             $providers[] = anchor("hauth/window/{$provider_id}", $provider_id);
-var_dump($this->EsciHybridauth->HA->getProviderConfig($provider_id));
+var_dump($this->escihybridauth->HA->getProviderConfig($provider_id));
         }
 
 
 
-//        foreach ($this->EsciHybridauth->HA->getProviders() as $provider_id => $params) {
+//        foreach ($this->escihybridauth->HA->getProviders() as $provider_id => $params) {
 //echo '<br>'.$provider_id . ':';
 //var_dump($params);
 //            $providers[] = anchor("hauth/window/{$provider_id}", $provider_id);
@@ -60,7 +61,7 @@ var_dump($providers);
             $params['openid_identifier'] = $_REQUEST['openid_identifier'];
         }
         try {
-            $adapter = $this->EsciHybridauth->HA->authenticate($provider_id, $params);
+            $adapter = $this->escihybridauth->HA->authenticate($provider_id, $params);
             $profile = $adapter->getUserProfile();
 
             $this->load->view('hauth/done', array(

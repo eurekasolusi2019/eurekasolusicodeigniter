@@ -1,13 +1,10 @@
                 <div class="logo">
-                    <a href="http://www.creative-tim.com" class="simple-text logo-mini">
+                    <a href="{{ site_url() }}" class="simple-text logo-mini">
                         <div class="logo-image-small">
-                            <img src="{{ site_url }}/assets/paper-dashboard/img/logo-small.png">
+                            <img src="{{ site_logo_img_src }}">
                         </div>
                     </a>
-                    <a href="http://www.creative-tim.com" class="simple-text logo-normal">
-                        Creative Tim
-                        <!-- <div class="logo-image-big">
-                          <img src="{{ site_url }}/assets/paper-dashboard/img/logo-big.png">
-                        </div> -->
+                    <a href="{{ site_url() }}" class="simple-text logo-normal">
+                        <span style="font-size: initial;">{{ site_logo_text }} </span>
                     </a>
                 </div>
