@@ -9,6 +9,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 $config['esci_app_name'] = 'ESCI Quick Starter DEV';
+$config['esci_app_owner'] = 'Eureka Solusi';
 $config['esci_app_version'] = '0.0.1';
 
 
@@ -89,7 +90,7 @@ $config['url_suffix'] = '';
 | than english.
 |
 */
-$config['language']	= 'english';
+$config['language']	= 'indonesian';
 
 /*
 |--------------------------------------------------------------------------
@@ -236,7 +237,7 @@ $config['allow_get_array'] = TRUE;
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+$config['log_threshold'] = 6;
 
 /*
 |--------------------------------------------------------------------------

@@ -199,6 +199,8 @@ class Ion_auth_model extends CI_Model {
     protected $db;
 
     public function __construct() {
+        log_message('application_debug', 'class:' . get_class($this) . ' function:' . __FUNCTION__);
+
         $this->config->load('ion_auth', TRUE);
         $this->load->helper('cookie');
         $this->load->helper('date');
@@ -304,7 +306,7 @@ class Ion_auth_model extends CI_Model {
      *
      * @param string    $password
      * @param string    $hash_password_db
-     * @param string    $identity            optional @deprecated only for BC SHA1
+     * @param string    $identity           optional @deprecated only for BC SHA1
      *
      * @return bool
      * @author Mathew
@@ -353,9 +355,9 @@ class Ion_auth_model extends CI_Model {
     /**
      * Get a user by its activation code
      *
-     * @param bool       $user_code    the activation code 
-     *                                 It's the *user* one, containing "selector.validator"
-     *                                 the one you got in activation_code member
+     * @param bool       $user_code the activation code 
+     *                              It's the *user* one, containing "selector.validator"
+     *                              the one you got in activation_code member
      *
      * @return    bool|object
      * @author Indigo
@@ -381,8 +383,8 @@ class Ion_auth_model extends CI_Model {
      * Validates and removes activation code.
      *
      * @param int|string $id        the user identifier
-     * @param bool       $code        the *user* activation code 
-     *                                 if omitted, simply activate the user without check
+     * @param bool       $code      the *user* activation code 
+     *                              if omitted, simply activate the user without check
      *
      * @return bool
      * @author Mathew
@@ -895,7 +897,7 @@ class Ion_auth_model extends CI_Model {
         }
 
         // Hash something anyway, just to take up time
-        $this->hash_password($password);
+        // $this->hash_password($password);
 
         $this->increase_login_attempts($identity);
 
@@ -903,6 +905,290 @@ class Ion_auth_model extends CI_Model {
         $this->set_error('login_unsuccessful');
 
         return FALSE;
+    }
+
+    /**
+     * Added by Yusuf
+     * 
+     * @param type $provider_id
+     * @param type $provider_uid
+     * @param type $verified_identity
+     * @param type $profile
+     * @return boolean
+     */
+    public function login_by_provider($provider_id, $provider_uid, $verified_identity, $profile) {
+
+        $this->trigger_events('pre_login');
+
+        if (empty($provider_id) || empty($provider_uid) || empty($verified_identity)) {
+            $this->set_error('login_unsuccessful');
+            return FALSE;
+        }
+
+        //
+        // find if the requested_user is exist in external auth table
+        // if not, register or insert as status = login attempt
+        // 
+        $query_requested_user = $this->db()->select()
+                ->where('provider', $provider_id)
+                ->where('provider_uid', $provider_uid)
+                ->where('identity', $verified_identity)
+                ->get($this->tables['authentications']);
+        //
+        // how to apply secret, in relation of users table and external auth table
+        // hash the user_id+email, put in into the secret field
+        // 
+        $requested_user = $query_requested_user->row();
+
+        //--- requested_user not found --- requested_user not found --- requested_user not found ---
+        if (empty($requested_user)) {
+            $cleaned_profile = array();
+            foreach ($profile as $key => $val) {
+                if (!empty($val)) {
+                    $cleaned_profile[$key] = $val;
+                }
+            }
+            $dbin['user_id'] = NULL;
+            $dbin['provider'] = $provider_id;
+            $dbin['provider_uid'] = $provider_uid;
+            $dbin['identity'] = $verified_identity;
+            $dbin['saved_object'] = json_encode($cleaned_profile);
+            $dbin['active'] = FALSE;
+            $dbin['registration_approved'] = FALSE;
+
+
+            $hash_string = $dbin['user_id'] . $provider_id . $provider_uid . $verified_identity;
+
+            $dbin['secret'] = $this->hash_password($hash_string, $verified_identity);
+            $dbin['_updated_at'] = date("Y-m-d H:i:s");
+
+            $this->db->insert($this->tables['authentications'], $dbin);
+            return FALSE;
+        }
+
+        if (empty($requested_user->user_id) || $requested_user->user_id === NULL) {
+            $this->increase_login_attempts($verified_identity);
+
+            $this->trigger_events('post_login_unsuccessful');
+            $this->set_error('login_unsuccessful');
+
+            return FALSE;
+        }
+
+        // --- requested_user found ...
+        // --- but status is not yet active or not yet approved
+        if (!($requested_user->registration_approved) || !($requested_user->active)) {
+            $this->db->set('_updated_at', date("Y-m-d H:i:s"));
+            $this->db->where('id', $requested_user->id);
+            $this->db->update($this->tables['authentications']);
+            $this->set_error('login_unsuccessful_not_active');
+            return FALSE;
+        }
+
+
+
+        // --- find real user
+        $this->trigger_events('extra_where');
+        $query_real_user = $this->db->select($this->identity_column . ', email, id, password, active, last_login')
+                ->join($this->tables['users_authentications'], $this->tables['users'].'.id = '.$this->tables['users_authentications'].'.user_id')
+                ->join($this->tables['authentications'], $this->tables['users_authentications'].'.external_auth_id = '.$this->tables['authentications'].'.id')
+                ->where($this->tables['authentications'].'.id', $requested_user->id)
+                ->limit(1)
+                ->order_by('id', 'desc')
+                ->get($this->tables['users']);
+
+        /* unused for now
+          if ($this->is_max_login_attempts_exceeded($identity)) {
+          // Hash something anyway, just to take up time
+          $this->hash_password($password);
+
+          $this->trigger_events('post_login_unsuccessful');
+          $this->set_error('login_timeout');
+
+          return FALSE;
+          }
+         * 
+         */
+        if ($query_real_user->num_rows() === 1) {
+            $user = $query_real_user->row();
+
+            // if ($this->verify_password($password, $user->password, $identity)) {
+            if ($user->active == 0) {
+                $this->trigger_events('post_login_unsuccessful');
+                $this->set_error('login_unsuccessful_not_active');
+
+                return FALSE;
+            }
+
+            // --- extra check
+            // compare hash of what are stored in db and what are provided by user and auth provider
+            $this_hash_string = $requested_user->user_id . $requested_user->provider . $requested_user->provider_uid . $requested_user->identity;
+            $this_secret = $this->hash_password($this_hash_string, $requested_user->identity);
+
+            $your_hash_string = $requested_user->user_id . $provider_id . $provider_uid . $verified_identity;
+            $your_secret = $this->hash_password($your_hash_string, $verified_identity);
+
+            log_message('application_debug', '$this_secret:' . $this_secret . ' $your_secret:' . $your_secret . ' result: ');
+
+            if ($your_secret === $this_secret) {
+                log_message('application_debug', 'TRUE');
+            } else {
+                log_message('application_debug', 'FALSE');
+            }
+
+            $this->set_session($user);
+
+            $this->update_last_login($user->id);
+
+            $this->clear_login_attempts($verified_identity);
+            $this->clear_forgotten_password_code($verified_identity);
+
+            if ($this->config->item('remember_users', 'ion_auth')) {
+                if ($remember) {
+                    $this->remember_user($identity);
+                } else {
+                    $this->clear_remember_code($identity);
+                }
+            }
+
+            // Rehash if needed
+            // $this->rehash_password_if_needed($user->password, $identity, $password);
+            // Regenerate the session (for security purpose: to avoid session fixation)
+            $this->session->sess_regenerate(FALSE);
+
+            $this->trigger_events(['post_login', 'post_login_successful']);
+            $this->set_message('login_successful');
+
+
+            return TRUE;
+            // } // if ($this->verify_password($password, $user->password, $identity))
+        }
+
+        //-- FINAL FAILURE
+        // Hash something anyway, just to take up time
+        // $this->hash_password($password);
+
+        $this->increase_login_attempts($verified_identity);
+
+        $this->trigger_events('post_login_unsuccessful');
+        $this->set_error('login_unsuccessful');
+
+        return FALSE;
+
+
+        /*
+
+
+
+
+
+          $query = $this->db->select('username, email, id, active, last_login')
+          ->where('id', $user_info->user_id)
+          ->limit(1)
+          ->get($this->tables['users']);
+
+          if ($query->num_rows() === 1) {
+          $user = $query->row();
+
+          if ($user->active == 0) {
+          $this->trigger_events('post_login_unsuccessful');
+          $this->set_error('login_unsuccessful_not_active');
+
+          return FALSE;
+          }
+
+          $session_data = array(
+          'identity' => $user->{$this->identity_column},
+          'username' => $user->username,
+          'email' => $user->email,
+          'user_id' => $user->id, //everyone likes to overwrite id so we'll use user_id
+          'old_last_login' => $user->last_login,
+          'provider' => $provider,
+          'provider_uid' => $provider_uid
+          );
+
+          $this->update_last_login($user->id);
+
+          $this->clear_login_attempts($user->email);
+
+          $this->session->set_userdata($session_data);
+
+          $this->trigger_events(array('post_login', 'post_login_successful'));
+          $this->set_message('login_successful');
+
+          return TRUE;
+          }
+
+          $this->trigger_events('post_login_unsuccessful');
+          $this->set_error('login_unsuccessful');
+
+          return FALSE;
+         * 
+         */
+    }
+
+    /**
+     * user by provider
+     * 
+     * try to get user profile if user already have authenticated using this provider before
+     *
+     * @return object
+     * @author MAMProgr
+     * */
+    public function user_by_provider($provider = NULL, $provider_uid = NULL) {
+
+        $this->trigger_events('user_by_provider');
+
+        if (empty($provider) || empty($provider_uid)) {
+            return FALSE;
+        }
+
+        $query = $this->db->where($this->tables['authentications'] . '.provider', $provider)
+                ->where($this->tables['authentications'] . '.provider_uid', $provider_uid)
+                ->limit(1)
+                ->get($this->tables['authentications']);
+        /*
+          $provider || $provider = $this->session->userdata('provider');
+
+          $provider_uid || $provider_uid = $this->session->userdata('provider_uid');
+
+          if (empty($provider) || empty($provider_uid))
+          {
+          return FALSE;
+          }
+
+          $this->trigger_events('extra_where');
+
+          $query = $this->db->where($this->tables['authentications'].'.provider', $provider)
+          ->where($this->tables['authentications'].'.provider_uid', $provider_uid)
+          ->limit(1)
+          ->get($this->tables['authentications']);
+
+          if ($query->num_rows() === 1)
+          {
+          $user_info = $query->row();
+          $email = $user_info->email;
+
+          $user_id = $this->id_by_email($email);
+
+          $user = $this->user($user_id)->row();
+
+          $user_info->ip_address = $user->ip_address;
+          $user_info->password = $user->password;
+          $user_info->salt = $user->salt;
+          $user_info->email = $user->email;
+          $user_info->activation_code = $user->activation_code;
+          $user_info->forgotten_password_code = $user->forgotten_password_code;
+          $user_info->remember_code = $user->remember_code;
+          $user_info->last_login = $user->last_login;
+          $user_info->active = $user->active;
+
+          return $user_info;
+          }
+          else
+          {
+          return FALSE;
+          } */
     }
 
     /**
@@ -2395,12 +2681,12 @@ class Ion_auth_model extends CI_Model {
      * This is a user code
      *
      * @param $selector_size int    size of the selector token
-     * @param $validator_size int    size of the validator token
+     * @param $validator_size int   size of the validator token
      *
      * @return object
-     *             ->selector            simple token to retrieve the user (to store in DB)
-     *             ->validator_hashed    token (hashed) to validate the user (to store in DB)
-     *             ->user_code            code to be used user-side (in cookie or URL)
+     *          ->selector          simple token to retrieve the user (to store in DB)
+     *          ->validator_hashed  token (hashed) to validate the user (to store in DB)
+     *          ->user_code         code to be used user-side (in cookie or URL)
      */
     protected function _generate_selector_validator_couple($selector_size = 40, $validator_size = 128) {
         // The selector is a simple token to retrieve the user
@@ -2425,11 +2711,11 @@ class Ion_auth_model extends CI_Model {
     /**
      * Retrieve remember cookie info
      *
-     * @param $user_code string    A user code of the form "selector.validator"
+     * @param $user_code string A user code of the form "selector.validator"
      *
      * @return object
-     *             ->selector        simple token to retrieve the user in DB
-     *             ->validator        token to validate the user (check against hashed value in DB)
+     *          ->selector      simple token to retrieve the user in DB
+     *          ->validator     token to validate the user (check against hashed value in DB)
      */
     protected function _retrieve_selector_validator_couple($user_code) {
         // Check code

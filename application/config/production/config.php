@@ -9,6 +9,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 $config['esci_app_name'] = 'ESCI Quick Starter';
+$config['esci_app_owner'] = 'Eureka Solusi';
 $config['esci_app_version'] = '0.0.1';
 
 

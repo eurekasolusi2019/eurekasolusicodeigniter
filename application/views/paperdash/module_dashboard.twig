@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    {{ html_head | raw }}
+
+    <body class="">
+        <div class="wrapper ">
+            <div class="sidebar" data-color="white" data-active-color="danger">
+                {{ page_logo | raw }}
+                <div class="sidebar-wrapper">
+                    {{ page_sidebar_nav | raw }}
+                </div>
+            </div>
+            <div class="main-panel">
+                <!-- Navbar -->
+                {{ page_main_navbar | raw}}
+                <!-- End Navbar -->
+
+                <div class="content">
+                    {#<div class="row">
+                        <div class="col-md-12">
+                            <div class="card ">
+                                <nav class="nav">
+                                    {% for module_nav_item in module_navs %}
+                                        <a href="{{ module_nav_item.url }}" class="{{ module_nav_item.href_class }}">{{ module_nav_item.label|e }}</a>
+                                    {% endfor %}
+                                </nav>
+                            </div>
+                        </div>
+                    </div>#}
+                    {# show message here #}
+                    {% if message != '' %}
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-danger" role="alert">
+                                    {{ message | raw }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card ">
+                                <div class="card-header ">
+                                    <h5 class="card-title">{{ content_title }}</h5>
+                                    <p class="card-category">{{ content_subtitle }}</p>
+                                </div>
+                                <div class="card-body ">
+                                    {{ output | raw }}
+                                </div>
+                                <div class="card-footer ">
+                                    <hr>
+                                    <div class="stats">
+                                        <i class="{{ content_footericon }}"></i> {{ content_footer }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> {#content#}
+                {{ page_footer | raw }}
+            </div> {#main panel#}
+        </div> {#wrapper#}
+        {{ pg_js_bottom | raw }}
+    </body>
+
+</html>

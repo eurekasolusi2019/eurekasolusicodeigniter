@@ -1,0 +1,20 @@
+                    <ul class="nav">
+                        {% for side_nav_item in side_nav %}
+                            {% if side_nav_item.active == true %}
+                            <li class="active">
+                            {% else %}
+                            <li>
+                            {% endif %}
+                                <a href="{{ side_nav_item.url|e }}">
+                                    <i class="{{ side_nav_item.icon|e }}" id="{{ side_nav_item.name|e }}"></i>
+                                    <p>{{ side_nav_item.label|e }}</p>
+                                </a>
+                            </li>
+                        {% endfor %}
+                        <li class="active-pro">
+                            <a href="{{ side_nav_last_item.href }}">
+                                <i class="{{ side_nav_last_item.iclass }}"></i>
+                                <p>{{side_nav_last_item.caption}}</p>
+                            </a>
+                        </li>
+                    </ul>

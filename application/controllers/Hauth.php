@@ -10,6 +10,7 @@ class Hauth extends ESCI_Controller {
     /**
      * {@inheritdoc}
      */
+    public $require_login = 0;
     public function __construct() {
         parent::__construct();
 
